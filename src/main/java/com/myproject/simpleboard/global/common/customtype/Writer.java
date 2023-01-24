@@ -3,6 +3,7 @@ package com.myproject.simpleboard.global.common.customtype;
 import com.myproject.simpleboard.member.Member;
 
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
@@ -18,7 +19,7 @@ public class Writer {
     
     private String writerName;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 

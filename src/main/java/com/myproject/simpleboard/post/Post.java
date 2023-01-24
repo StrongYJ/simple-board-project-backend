@@ -1,18 +1,16 @@
 package com.myproject.simpleboard.post;
 
 import com.myproject.simpleboard.global.common.customtype.Deleted;
+import com.myproject.simpleboard.global.common.customtype.Writer;
 import com.myproject.simpleboard.global.common.entity.BaseTimeEntity;
-import com.myproject.simpleboard.member.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,10 +31,19 @@ public class Post extends BaseTimeEntity {
     private String content;
     
     @Embedded
-    private Deleted deleted;
+    private Deleted isDeleted;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member namedWriter;
-    private String writer;
+    @Embedded
+    private Writer writer;
+
+    public Post(String title, String content, Writer writer) {
+        this.title = title;
+        this.content = content;
+        this.writer = writer;
+    }
+
+    @PrePersist
+    private void deleteInit() {
+        isDeleted = new Deleted(false, null);
+    }
 }

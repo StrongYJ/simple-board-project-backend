@@ -16,14 +16,14 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Deleted {
     
-    private Boolean isDeleted;
+    private boolean isDeleted;
     private LocalDateTime deleteDT;
     
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((isDeleted == null) ? 0 : isDeleted.hashCode());
+        result = prime * result + (isDeleted ? 1231 : 1237);
         result = prime * result + ((deleteDT == null) ? 0 : deleteDT.hashCode());
         return result;
     }
@@ -36,10 +36,7 @@ public class Deleted {
         if (getClass() != obj.getClass())
             return false;
         Deleted other = (Deleted) obj;
-        if (isDeleted == null) {
-            if (other.isDeleted != null)
-                return false;
-        } else if (!isDeleted.equals(other.isDeleted))
+        if (isDeleted != other.isDeleted)
             return false;
         if (deleteDT == null) {
             if (other.deleteDT != null)
@@ -49,5 +46,6 @@ public class Deleted {
         return true;
     }
 
+    
     
 }
