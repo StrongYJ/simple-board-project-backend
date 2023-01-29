@@ -7,10 +7,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final TokenUtils tokenUtils;
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -23,7 +29,8 @@ public class SecurityConfig {
                 .requestMatchers("/login", "/join").permitAll()
                 .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
                 .anyRequest().permitAll()
-            );
+            )
+            .addFilterBefore(new JwtFilter(tokenUtils), UsernamePasswordAuthenticationFilter.class);
             
         return http.build();
     }

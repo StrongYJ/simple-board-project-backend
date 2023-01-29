@@ -10,7 +10,10 @@ import com.myproject.simpleboard.domain.member.domain.MemberRole;
 import com.myproject.simpleboard.domain.member.domain.MemberStatus;
 import com.myproject.simpleboard.domain.member.domain.Status;
 
+import lombok.extern.slf4j.Slf4j;
+
 @SpringBootTest
+@Slf4j
 class SimpleboardApplicationTests {
 
     @Autowired MemberRepository memberRepository;
@@ -22,6 +25,5 @@ class SimpleboardApplicationTests {
 	void createMember() {
         Member m = new Member("ddd", "1234", MemberRole.USER, new MemberStatus(Status.NORMAL));
         memberRepository.save(m);
-	}
-
+    }   
 }
