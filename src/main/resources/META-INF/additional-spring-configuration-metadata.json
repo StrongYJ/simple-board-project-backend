@@ -1,0 +1,9 @@
+{
+    "properties": [
+        {
+            "name": "file.path",
+            "type": "java.lang.String",
+            "description": "파일이 저장될 로컬컴퓨터 경로입니다."
+        }
+    ]
+}
