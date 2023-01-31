@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -28,10 +29,18 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login", "/join").permitAll()
                 .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtFilter(tokenUtils), UsernamePasswordAuthenticationFilter.class);
+            .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+            .and()
+            .addFilterBefore(new JwtFilter(tokenUtils), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new JwtExceptionHandlerFilter(), JwtFilter.class);
             
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return new CustomAuthenticationEntryPoint();
     }
 }
