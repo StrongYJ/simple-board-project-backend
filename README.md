@@ -5,7 +5,7 @@ API를 구현합니다.
 
 ### 사용된 기술
 * Java 17
-* SpringBoot 3.0.2
+* SpringBoot 3.0
 * JPA
-* PostgreSQL
+* MariaDB
 * Git
