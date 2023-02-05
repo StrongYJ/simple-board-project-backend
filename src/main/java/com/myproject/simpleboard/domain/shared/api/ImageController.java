@@ -14,9 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriUtils;
 
-import com.myproject.simpleboard.domain.comment.CommentImage;
 import com.myproject.simpleboard.domain.post.dao.PostImageRepository;
-import com.myproject.simpleboard.domain.post.domain.PostImage;
+import com.myproject.simpleboard.domain.post.entity.PostImage;
 import com.myproject.simpleboard.global.util.file.FileUtility;
 
 import lombok.RequiredArgsConstructor;

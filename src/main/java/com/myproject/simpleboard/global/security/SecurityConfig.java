@@ -3,17 +3,20 @@ package com.myproject.simpleboard.global.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -27,11 +30,13 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/login", "/join").permitAll()
+                .requestMatchers("/members/login", "/members/join").permitAll()
                 .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+            .exceptionHandling()
+                .authenticationEntryPoint(authenticationEntryPoint())
+                .accessDeniedHandler(accessDeniedHandler())
             .and()
             .addFilterBefore(new JwtFilter(tokenUtils), UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(new JwtExceptionHandlerFilter(), JwtFilter.class);
@@ -42,5 +47,10 @@ public class SecurityConfig {
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return new CustomAuthenticationEntryPoint();
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new CustomAccessDeniedHandler();
     }
 }

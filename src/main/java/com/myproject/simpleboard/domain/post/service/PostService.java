@@ -1,7 +1,9 @@
-package com.myproject.simpleboard.domain.post;
+package com.myproject.simpleboard.domain.post.service;
 
 import java.util.List;
 
+import com.myproject.simpleboard.domain.post.entity.Comment;
+import com.myproject.simpleboard.domain.post.dao.CommentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -10,16 +12,15 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.myproject.simpleboard.domain.member.MemberRepository;
-import com.myproject.simpleboard.domain.member.domain.Member;
+import com.myproject.simpleboard.domain.member.entity.Member;
 import com.myproject.simpleboard.domain.post.dao.PostImageRepository;
 import com.myproject.simpleboard.domain.post.dao.PostRepository;
-import com.myproject.simpleboard.domain.post.dao.PostRepositoryCustom;
-import com.myproject.simpleboard.domain.post.domain.Post;
-import com.myproject.simpleboard.domain.post.domain.PostImage;
-import com.myproject.simpleboard.domain.post.dto.CreatedPostDto;
-import com.myproject.simpleboard.domain.post.dto.PostCreateDto;
-import com.myproject.simpleboard.domain.post.dto.PostDetailDto;
-import com.myproject.simpleboard.domain.post.dto.PostSimpleDto;
+import com.myproject.simpleboard.domain.post.entity.Post;
+import com.myproject.simpleboard.domain.post.entity.PostImage;
+import com.myproject.simpleboard.domain.post.dto.post.CreatedPostDto;
+import com.myproject.simpleboard.domain.post.dto.post.PostCreateDto;
+import com.myproject.simpleboard.domain.post.dto.post.PostDetailDto;
+import com.myproject.simpleboard.domain.post.dto.post.PostSimpleDto;
 import com.myproject.simpleboard.global.util.file.FileUtility;
 import com.myproject.simpleboard.global.util.file.UploadFile;
 
@@ -31,9 +32,9 @@ import lombok.RequiredArgsConstructor;
 public class PostService {
 
     private final PostRepository postRepo;
-    private final PostRepositoryCustom postRepoCustom;
-    private final MemberRepository memberRepo;
     private final PostImageRepository postImageRepo;
+    private final CommentRepository commentRepo;
+    private final MemberRepository memberRepo;
     private final FileUtility fileUtility;
 
     public Page<PostSimpleDto> findAll(Pageable pageable) {
@@ -41,7 +42,10 @@ public class PostService {
     }
 
     public PostDetailDto findPostDetail(Long id) {
-        return new PostDetailDto(postRepoCustom.findByIdWithComments(id).orElseThrow());
+        Post post = postRepo.findPostByIdWithImages(id).orElseThrow();
+        List<Comment> comments = commentRepo.findAllByPost(post);
+
+        return new PostDetailDto(post, comments);
     }
 
     @Transactional
@@ -56,6 +60,6 @@ public class PostService {
                     .toList();
             postImageRepo.saveAll(newImages);
         }
-        return new CreatedPostDto(newPost.getId(), newPost.getTitle());
+        return new CreatedPostDto(newPost.getId(), newPost.getTitle(), newPost.getBody(), newPost.getWriter(), newPost.getCreatedDate());
     }
 }

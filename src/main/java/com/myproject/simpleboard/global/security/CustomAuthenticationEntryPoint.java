@@ -1,6 +1,7 @@
 package com.myproject.simpleboard.global.security;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -26,10 +27,10 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.sendError(401, "This Service needs Login");
         Map<String, Object> errorJson = new LinkedHashMap<>();
-        errorJson.put("timestamp", ZonedDateTime.now());
+        errorJson.put("timestamp", Instant.now().toEpochMilli());
         errorJson.put("status", 401);
         errorJson.put("message", "Unauthorized");
-        response.getWriter().write(new ObjectMapper().registerModule(new JavaTimeModule()).writeValueAsString(errorJson));
+        response.getWriter().write(new ObjectMapper().writeValueAsString(errorJson));
     }
     
 }

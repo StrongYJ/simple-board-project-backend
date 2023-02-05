@@ -7,5 +7,5 @@ API를 구현합니다.
 * Java 17
 * SpringBoot 3.0
 * JPA
-* MariaDB
+* PostgreSQL
 * Git

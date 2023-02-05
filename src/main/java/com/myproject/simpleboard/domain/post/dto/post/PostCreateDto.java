@@ -1,4 +1,4 @@
-package com.myproject.simpleboard.domain.post.dto;
+package com.myproject.simpleboard.domain.post.dto.post;
 
 import java.util.List;
 

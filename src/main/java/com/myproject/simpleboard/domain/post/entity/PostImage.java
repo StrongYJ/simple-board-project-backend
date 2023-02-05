@@ -1,4 +1,4 @@
-package com.myproject.simpleboard.domain.post.domain;
+package com.myproject.simpleboard.domain.post.entity;
 
 import com.myproject.simpleboard.domain.shared.model.File;
 

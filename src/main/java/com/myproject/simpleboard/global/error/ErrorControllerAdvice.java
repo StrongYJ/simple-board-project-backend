@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -37,12 +39,29 @@ public class ErrorControllerAdvice {
     public ErrorResult unexpectedTypeEx(UnexpectedTypeException e) {
         return new ErrorResult(HttpStatus.BAD_REQUEST, e.getMessage());
     }
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ErrorResult noSuchElementEx(IllegalArgumentException e) {
+        return new ErrorResult(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NoSuchElementException.class)
     public ErrorResult noSuchElementEx(NoSuchElementException e) {
         return new ErrorResult(HttpStatus.NOT_FOUND, e.getMessage());
     }
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(DisabledException.class)
+    public ErrorResult disabledEx(DisabledException e) {
+        return new ErrorResult(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ErrorResult accessDeniedEx(AccessDeniedException e) {
+        return new ErrorResult(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
 
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     @ExceptionHandler(RuntimeException.class)

@@ -19,7 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.myproject.simpleboard.domain.member.domain.MemberRole;
+import com.myproject.simpleboard.domain.member.entity.model.MemberRole;
 import com.myproject.simpleboard.global.security.JwtProperties;
 import com.myproject.simpleboard.global.security.TokenUtils;
 
@@ -41,7 +41,7 @@ public class MemberControllerTest {
         Cookie cookie = new Cookie(JwtProperties.JWT_NANE, tokenUtils.createToken(1L, MemberRole.USER));
         cookie.setHttpOnly(true);
         
-        mockMvc.perform(post("/test").cookie(cookie))
+        mockMvc.perform(post("/members/test").cookie(cookie))
         .andExpect(status().isOk())
         .andDo(print());
     }
@@ -53,7 +53,7 @@ public class MemberControllerTest {
         Cookie cookie = new Cookie(JwtProperties.JWT_NANE, tokenUtils.createToken(nextLong, MemberRole.USER));
         cookie.setHttpOnly(true);
         
-        mockMvc.perform(post("/test").cookie(cookie))
+        mockMvc.perform(post("/members/test").cookie(cookie))
         .andExpect(status().isOk())
         .andExpect(content().string("[유효한 토큰] memberId: " + nextLong))
         .andDo(print());
@@ -63,7 +63,7 @@ public class MemberControllerTest {
     @Test
     void jwtNonCookieTest() throws Exception {
         
-        mockMvc.perform(post("/test"))
+        mockMvc.perform(post("/members/test"))
         .andExpect(status().isUnauthorized())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andDo(print());
@@ -81,7 +81,7 @@ public class MemberControllerTest {
         .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS512))
         .compact());
         
-        mockMvc.perform(post("/test").cookie(cookie))
+        mockMvc.perform(post("/members/test").cookie(cookie))
         .andExpect(status().isUnauthorized())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andDo(print());
@@ -105,7 +105,7 @@ public class MemberControllerTest {
         errorJson.put("error_type", "io.jsonwebtoken.security.SignatureException: JWT signature does not match locally computed signature. JWT validity cannot be asserted and should not be trusted.");
         errorJson.put("error_message", "JWT signature does not match locally computed signature. JWT validity cannot be asserted and should not be trusted.");
 
-        mockMvc.perform(post("/test").cookie(cookie))
+        mockMvc.perform(post("/members/test").cookie(cookie))
         .andExpect(status().isUnauthorized())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(content().json(new ObjectMapper().writeValueAsString(errorJson), false))
@@ -121,7 +121,7 @@ public class MemberControllerTest {
         
         Thread.sleep(JwtProperties.TOKEN_EXPIRE_TIME + 1L);
 
-        mockMvc.perform(post("/test").cookie(cookie))
+        mockMvc.perform(post("/members/test").cookie(cookie))
         .andExpect(status().isUnauthorized())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andDo(print());

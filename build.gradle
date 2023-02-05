@@ -26,9 +26,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-	annotationProcessor 'org.projectlombok:lombok'
+    runtimeOnly 'org.postgresql:postgresql'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     // jwt
@@ -44,8 +42,17 @@ dependencies {
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2'
 
+	//LOMBOK Dependencies
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testImplementation 'org.projectlombok:lombok'
+
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+def querydslDir = "$buildDir/generated/querydsl"

@@ -1,4 +1,4 @@
-package com.myproject.simpleboard.domain.comment;
+package com.myproject.simpleboard.domain.post.api;
 
 import org.springframework.web.bind.annotation.RestController;
 

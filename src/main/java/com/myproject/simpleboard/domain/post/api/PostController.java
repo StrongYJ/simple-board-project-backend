@@ -1,5 +1,6 @@
-package com.myproject.simpleboard.domain.post;
+package com.myproject.simpleboard.domain.post.api;
 
+import com.myproject.simpleboard.domain.post.service.PostService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -8,16 +9,14 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.myproject.simpleboard.domain.post.dto.CreatedPostDto;
-import com.myproject.simpleboard.domain.post.dto.PostCreateDto;
-import com.myproject.simpleboard.domain.post.dto.PostDetailDto;
-import com.myproject.simpleboard.domain.post.dto.PostSimpleDto;
+import com.myproject.simpleboard.domain.post.dto.post.CreatedPostDto;
+import com.myproject.simpleboard.domain.post.dto.post.PostCreateDto;
+import com.myproject.simpleboard.domain.post.dto.post.PostDetailDto;
+import com.myproject.simpleboard.domain.post.dto.post.PostSimpleDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
