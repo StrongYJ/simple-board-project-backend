@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,42 +28,33 @@ public class SecureTest {
         String managerToken = tokenUtils.createAccessToken(1L, MemberRole.MANAGER);
         String adminToken = tokenUtils.createAccessToken(1L, MemberRole.ADMIN);
 
-        Cookie userCookie = new Cookie(JwtProperties.REFRESH_NANE, userToken);
-        userCookie.setHttpOnly(true);
-
-        Cookie managerCookie = new Cookie(JwtProperties.REFRESH_NANE, managerToken);
-        managerCookie.setHttpOnly(true);
-
-        Cookie adminCookie = new Cookie(JwtProperties.REFRESH_NANE, adminToken);
-        adminCookie.setHttpOnly(true);
-
-        mockMvc.perform(get("/members/manager-test").cookie(userCookie))
+        mockMvc.perform(get("/members/manager-test").header(HttpHeaders.AUTHORIZATION, userToken))
                 .andExpect(status().isForbidden())
                 .andDo(print());
-        mockMvc.perform(get("/members/manager-test").cookie(managerCookie))
+        mockMvc.perform(get("/members/manager-test").header(HttpHeaders.AUTHORIZATION, managerToken))
                 .andExpect(status().isOk())
                 .andDo(print());
-        mockMvc.perform(get("/members/manager-test").cookie(adminCookie))
+        mockMvc.perform(get("/members/manager-test").header(HttpHeaders.AUTHORIZATION, adminToken))
                 .andExpect(status().isForbidden())
                 .andDo(print());
 
-        mockMvc.perform(get("/members/admin-test").cookie(userCookie))
+        mockMvc.perform(get("/members/admin-test").header(HttpHeaders.AUTHORIZATION, userToken))
                 .andExpect(status().isForbidden())
                 .andDo(print());
-        mockMvc.perform(get("/members/admin-test").cookie(managerCookie))
+        mockMvc.perform(get("/members/admin-test").header(HttpHeaders.AUTHORIZATION, managerToken))
                 .andExpect(status().isForbidden())
                 .andDo(print());
-        mockMvc.perform(get("/members/admin-test").cookie(adminCookie))
+        mockMvc.perform(get("/members/admin-test").header(HttpHeaders.AUTHORIZATION, adminToken))
                 .andExpect(status().isOk())
                 .andDo(print());
 
-        mockMvc.perform(get("/members/admin-manager-test").cookie(userCookie))
+        mockMvc.perform(get("/members/admin-manager-test").header(HttpHeaders.AUTHORIZATION, userToken))
                 .andExpect(status().isForbidden())
                 .andDo(print());
-        mockMvc.perform(get("/members/admin-manager-test").cookie(managerCookie))
+        mockMvc.perform(get("/members/admin-manager-test").header(HttpHeaders.AUTHORIZATION, managerToken))
                 .andExpect(status().isOk())
                 .andDo(print());
-        mockMvc.perform(get("/members/admin-manager-test").cookie(adminCookie))
+        mockMvc.perform(get("/members/admin-manager-test").header(HttpHeaders.AUTHORIZATION, adminToken))
                 .andExpect(status().isOk())
                 .andDo(print());
     }
