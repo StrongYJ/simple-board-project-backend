@@ -25,7 +25,7 @@ class SimpleBoardApplicationTests {
 
     @Test
     void contextLoads() throws InterruptedException {
-        String compact = tokenUtils.createToken(1L, MemberRole.USER);
+        String compact = tokenUtils.createAccessToken(1L, MemberRole.USER);
 
         try {
             Thread.sleep(2000L);

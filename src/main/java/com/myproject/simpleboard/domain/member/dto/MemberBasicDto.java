@@ -6,6 +6,6 @@ import java.time.LocalDateTime;
 
 public record MemberBasicDto(String username, LocalDateTime createdDate, String status, String role) {
     public MemberBasicDto(Member member) {
-        this(member.getUsername(), member.getCreatedDate(), member.getStatus().getStatus().getTitle(), member.getRole().getTitle());
+        this(member.getUsername(), member.getCreatedDate(), member.getStatus().getTitle(), member.getRole().getTitle());
     }
 }

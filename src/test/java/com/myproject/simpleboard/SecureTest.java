@@ -23,17 +23,17 @@ public class SecureTest {
 
     @Test
     void onlyManager() throws Exception {
-        String userToken = tokenUtils.createToken(1L, MemberRole.USER);
-        String managerToken = tokenUtils.createToken(1L, MemberRole.MANAGER);
-        String adminToken = tokenUtils.createToken(1L, MemberRole.ADMIN);
+        String userToken = tokenUtils.createAccessToken(1L, MemberRole.USER);
+        String managerToken = tokenUtils.createAccessToken(1L, MemberRole.MANAGER);
+        String adminToken = tokenUtils.createAccessToken(1L, MemberRole.ADMIN);
 
-        Cookie userCookie = new Cookie(JwtProperties.JWT_NANE, userToken);
+        Cookie userCookie = new Cookie(JwtProperties.REFRESH_NANE, userToken);
         userCookie.setHttpOnly(true);
 
-        Cookie managerCookie = new Cookie(JwtProperties.JWT_NANE, managerToken);
+        Cookie managerCookie = new Cookie(JwtProperties.REFRESH_NANE, managerToken);
         managerCookie.setHttpOnly(true);
 
-        Cookie adminCookie = new Cookie(JwtProperties.JWT_NANE, adminToken);
+        Cookie adminCookie = new Cookie(JwtProperties.REFRESH_NANE, adminToken);
         adminCookie.setHttpOnly(true);
 
         mockMvc.perform(get("/members/manager-test").cookie(userCookie))

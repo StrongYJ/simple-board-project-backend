@@ -31,13 +31,21 @@ public class TokenUtils {
         this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     }
 
-    public String createToken(Long memberId, MemberRole role) {
+    public String createRefreshToken() {
         return Jwts.builder()
+                .setSubject("board_project")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + JwtProperties.REFRESH_EXPIRE_TIME))
+                .signWith(key)
+                .compact();
+    }
+    public String createAccessToken(Long memberId, MemberRole role) {
+        return JwtProperties.ACCESS_NAME + Jwts.builder()
             .setSubject("board_project")
             .claim("id", memberId)
             .claim("role", role)
             .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + JwtProperties.TOKEN_EXPIRE_TIME))
+            .setExpiration(new Date(System.currentTimeMillis() + JwtProperties.ACCESS_EXPIRE_TIME))
             .signWith(key)
             .compact();
     }
@@ -46,7 +54,6 @@ public class TokenUtils {
         Claims claims = parseClaims(accessToken);
         Collection<GrantedAuthority> authority = new ArrayList<>();
         String role = claims.get("role").toString();
-        log.info("[TokenUtils getAuthentication] role = {}", role);
         authority.add(new SimpleGrantedAuthority(role));
         return new UsernamePasswordAuthenticationToken(claims.get("id"), null, authority);
     }
@@ -56,8 +63,11 @@ public class TokenUtils {
         return true;
     }
 
-    public String getToken(Cookie[] cookies) {
-        return Arrays.stream(cookies).filter(c -> c.getName().equals(JwtProperties.JWT_NANE)&&c.isHttpOnly()).findAny().orElseThrow().getValue();
+    public String accessTokenResolve(String accessToken) {
+        return accessToken.replace(JwtProperties.ACCESS_NAME, "");
+    }
+    public String getRefreshToken(Cookie[] cookies) {
+        return Arrays.stream(cookies).filter(c -> c.getName().equals(JwtProperties.REFRESH_NANE)&&c.isHttpOnly()&&c.getSecure()).findAny().orElseThrow().getValue();
     }
 
     public Long extractMemberId(String token) {

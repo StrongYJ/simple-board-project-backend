@@ -4,7 +4,9 @@ import com.myproject.simpleboard.domain.member.dto.*;
 import com.myproject.simpleboard.domain.member.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.annotation.Validated;
@@ -14,8 +16,6 @@ import com.myproject.simpleboard.global.security.JwtProperties;
 import com.myproject.simpleboard.global.security.LoginMemberId;
 import com.myproject.simpleboard.global.security.TokenUtils;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,12 +33,19 @@ public class MemberController {
         return new ResponseEntity<>(new MemberBasicDto(memberService.getMemberById(id)), HttpStatus.OK);
     }
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto) {
         Member loginMember = memberService.login(loginDto);
-        Cookie cookie = new Cookie(JwtProperties.JWT_NANE, tokenUtils.createToken(loginMember.getId(), loginMember.getRole()));
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
-        return new ResponseEntity<LoginResponseDto>(new LoginResponseDto(loginMember.getUsername(), "logined"), HttpStatus.OK);
+        ResponseCookie cookie = ResponseCookie.from(JwtProperties.REFRESH_NANE, tokenUtils.createRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(JwtProperties.REFRESH_EXPIRE_TIME)
+                .build();
+        String accessToken = tokenUtils.createAccessToken(loginMember.getId(), loginMember.getRole());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .body(new LoginResponseDto(loginMember.getUsername(), "logined"));
     }
 
     @PostMapping("")
@@ -63,13 +70,13 @@ public class MemberController {
         return new ResponseEntity<>(memberService.withdrawal(id), HttpStatus.OK);
     }
 
-    @Secured({"ROLE_MANAGER", "ROLE_ADMIN"})
+    @Secured({"MANAGER", "ADMIN"})
     @GetMapping("/{id}")
     public ResponseEntity<MemberDetailDto> getMemberDetailInfo(@PathVariable("id") long id) {
         return new ResponseEntity<>(new MemberDetailDto(memberService.getMemberById(id)), HttpStatus.OK);
     }
 
-    @Secured({"ROLE_MANAGER", "ROLE_ADMIN"})
+    @Secured({"MANAGER", "ADMIN"})
     @PostMapping("/{id}")
     public ResponseEntity<ChangeStatusResponse> postMemberPunishment(
             @PathVariable("id") long id,
@@ -79,7 +86,7 @@ public class MemberController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @Secured({"ROLE_MANAGER", "ROLE_ADMIN"})
+    @Secured({"MANAGER", "ADMIN"})
     @GetMapping("/all")
     public ResponseEntity<Page<MemberDetailDto>> getMembers(Pageable pageable) {
         return new ResponseEntity<>(memberService.getAllMembers(pageable).map(MemberDetailDto::new), HttpStatus.OK);
