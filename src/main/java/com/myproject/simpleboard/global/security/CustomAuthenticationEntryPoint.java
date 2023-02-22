@@ -1,6 +1,7 @@
 package com.myproject.simpleboard.global.security;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -25,12 +26,15 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException, ServletException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.sendError(401, "This Service needs Login");
+        response.setStatus(401);
         Map<String, Object> errorJson = new LinkedHashMap<>();
         errorJson.put("timestamp", Instant.now().toEpochMilli());
         errorJson.put("status", 401);
         errorJson.put("message", "Unauthorized");
-        response.getWriter().write(new ObjectMapper().writeValueAsString(errorJson));
+        PrintWriter writer = response.getWriter();
+        writer.write(new ObjectMapper().writeValueAsString(errorJson));
+        writer.flush();
+        writer.close();
     }
     
 }

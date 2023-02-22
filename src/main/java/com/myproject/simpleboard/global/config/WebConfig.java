@@ -1,24 +1,21 @@
 package com.myproject.simpleboard.global.config;
 
-import java.util.List;
-
+import com.myproject.simpleboard.global.security.AuthenticationArgumentResolver;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.myproject.simpleboard.global.security.LoginMemberIdHandlerResolver;
-import com.myproject.simpleboard.global.security.TokenUtils;
+import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-
-@Configuration
 @RequiredArgsConstructor
+@Configuration
 public class WebConfig implements WebMvcConfigurer {
-    
-    private final TokenUtils tokenUtils;
+
+    private final AuthenticationArgumentResolver authenticationArgumentResolver;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(new LoginMemberIdHandlerResolver(tokenUtils));
+        resolvers.add(authenticationArgumentResolver);
     }
 }

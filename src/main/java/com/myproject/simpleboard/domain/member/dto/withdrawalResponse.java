@@ -1,4 +1,6 @@
 package com.myproject.simpleboard.domain.member.dto;
 
-public record withdrawalResponse(String username, String deleteDate) {
+import java.time.LocalDate;
+
+public record withdrawalResponse(String username, LocalDate deleteDate) {
 }

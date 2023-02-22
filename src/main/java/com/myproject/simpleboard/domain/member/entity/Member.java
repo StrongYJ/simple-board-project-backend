@@ -6,8 +6,10 @@ import com.myproject.simpleboard.domain.shared.model.BaseTime;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Entity
 @Getter
@@ -15,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class Member extends BaseTime {
     
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true)
@@ -32,6 +34,7 @@ public class Member extends BaseTime {
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
     private MemberStatusDetail memberStatusDetail;
 
+    @Builder
     public Member(String username, String pwd, MemberRole role, MemberStatus memberStatus) {
         this.username = username;
         this.pwd = pwd;
@@ -39,19 +42,17 @@ public class Member extends BaseTime {
         this.status = memberStatus;
     }
 
-    public void modifyUsername(String username) {
-        this.username = username;
+    public void updateUsernameOrPwd(String username, String pwd) {
+        if(StringUtils.hasText(username)) this.username = username;
+        if(StringUtils.hasText(pwd)) this.pwd = pwd;
     }
 
-    public void modifyPwd(String pwd) {
-        this.pwd = pwd;
+    public void punishPause(String reason) {
+        this.status = MemberStatus.PAUSE;
+        this.memberStatusDetail = new MemberStatusDetail(MemberStatus.PAUSE, reason, this);
     }
-
-    public void modifyStatus(MemberStatus memberStatus) {
-        this.status = memberStatus;
-    }
-
-    public void setMemberStatusDetail(MemberStatus status, String reason) {
-        this.memberStatusDetail = new MemberStatusDetail(status, reason, this);
+    public void punishSuspend(String reason) {
+        this.status = MemberStatus.SUSPEND;
+        this.memberStatusDetail = new MemberStatusDetail(MemberStatus.SUSPEND, reason, this);
     }
 }

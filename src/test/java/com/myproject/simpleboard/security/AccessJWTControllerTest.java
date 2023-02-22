@@ -1,4 +1,4 @@
-package com.myproject.simpleboard;
+package com.myproject.simpleboard.security;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -6,11 +6,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Date;
-import java.util.Random;
 
+import com.myproject.simpleboard.domain.member.MemberRepository;
+import com.myproject.simpleboard.domain.member.entity.Member;
+import com.myproject.simpleboard.domain.member.entity.model.MemberStatus;
+import io.jsonwebtoken.IncorrectClaimException;
+import io.jsonwebtoken.MissingClaimException;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
@@ -27,32 +35,44 @@ import io.jsonwebtoken.security.Keys;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AccessJWTControllerTest {
 
+    @Autowired
+    private MemberRepository memberRepository;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private TokenUtils tokenUtils;
 
+    private Long dummyMemberId;
+
+    @BeforeAll
+    void createDummyMember() {
+        Member member = new Member("test1", "fkwemfkwefm", MemberRole.USER, MemberStatus.NORMAL);
+        memberRepository.save(member);
+        dummyMemberId = member.getId();
+    }
+
     @DisplayName("유효한 토큰 테스트")
     @Test
     void jwtCookieTest() throws Exception {
-        String accessToken = tokenUtils.createAccessToken(1L, MemberRole.USER);
+        final String accessToken = tokenUtils.createAccessToken(dummyMemberId, MemberRole.USER);
 
         mockMvc.perform(post("/members/test").header(HttpHeaders.AUTHORIZATION, accessToken))
                 .andExpect(status().isOk())
                 .andDo(print());
     }
 
-    @DisplayName("LoginMemberIdHandlerResolver 테스트")
+    @DisplayName("AuthenticationArgumentResolver 테스트")
     @Test
     void jwtLoginMemberIdHandlerResolverTest() throws Exception {
-        long nextLong = new Random().nextLong();
-        String accessToken = tokenUtils.createAccessToken(nextLong, MemberRole.USER);
+        String accessToken = tokenUtils.createAccessToken(dummyMemberId, MemberRole.USER);
 
         mockMvc.perform(post("/members/test").header(HttpHeaders.AUTHORIZATION, accessToken))
                 .andExpect(status().isOk())
-                .andExpect(content().string("[유효한 토큰] memberId: " + nextLong))
+                .andExpect(content().string("[유효한 토큰] memberId: " + dummyMemberId))
                 .andDo(print());
     }
 
@@ -69,7 +89,7 @@ public class AccessJWTControllerTest {
     @DisplayName("다른 키값으로 생성한 액세스 토큰을 보냈을 시")
     @Test
     void jwtNotHttpOnlyCookieTest() throws Exception {
-        String token = Jwts.builder()
+        String token = JwtProperties.ACCESS_PREFIX + Jwts.builder()
                 .setSubject("board_project")
                 .claim("id", 1L)
                 .claim("role", MemberRole.USER)
@@ -82,5 +102,15 @@ public class AccessJWTControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andDo(print());
+    }
+
+    @Test
+    void 다른_sub로_검증시() {
+        String accessToken = tokenUtils.createAccessToken(dummyMemberId, MemberRole.USER);
+        Assertions.assertThatThrownBy(() -> {
+            String token = tokenUtils.accessTokenResolve(accessToken);
+            tokenUtils.verifyRefresh(token);
+        }).isInstanceOf(IncorrectClaimException.class);
+
     }
 }

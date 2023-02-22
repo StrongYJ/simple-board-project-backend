@@ -2,6 +2,7 @@ package com.myproject.simpleboard.domain.member;
 
 import com.myproject.simpleboard.domain.member.dto.*;
 import com.myproject.simpleboard.domain.member.entity.Member;
+import com.myproject.simpleboard.global.security.LoginMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -13,7 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.myproject.simpleboard.global.security.JwtProperties;
-import com.myproject.simpleboard.global.security.LoginMemberId;
+import com.myproject.simpleboard.global.security.AuthMember;
 import com.myproject.simpleboard.global.security.TokenUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -29,45 +30,50 @@ public class MemberController {
     private final MemberService memberService;
 
     @GetMapping("")
-    public ResponseEntity<MemberBasicDto> info(@LoginMemberId long id) {
-        return new ResponseEntity<>(new MemberBasicDto(memberService.getMemberById(id)), HttpStatus.OK);
+    public ResponseEntity<MemberBasicDto> info(@AuthMember LoginMember loginMember) {
+        return new ResponseEntity<>(new MemberBasicDto(memberService.getMemberById(loginMember.id())), HttpStatus.OK);
     }
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto) {
-        Member loginMember = memberService.login(loginDto);
+        MemberDetailDto loginMember = memberService.login(loginDto);
         ResponseCookie cookie = ResponseCookie.from(JwtProperties.REFRESH_NANE, tokenUtils.createRefreshToken())
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(JwtProperties.REFRESH_EXPIRE_TIME)
+                .maxAge(JwtProperties.REFRESH_EXPIRE_TIME / 1000)
                 .build();
-        String accessToken = tokenUtils.createAccessToken(loginMember.getId(), loginMember.getRole());
+        String accessToken = tokenUtils.createAccessToken(loginMember.id(), loginMember.role());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .header(HttpHeaders.AUTHORIZATION, accessToken)
-                .body(new LoginResponseDto(loginMember.getUsername(), "logined"));
+                .body(new LoginResponseDto(loginMember.username(), "logined"));
     }
 
     @PostMapping("")
     public ResponseEntity<MemberJoinResponse> join(@RequestBody @Validated MemberJoinDto memberJoinDto) {
-        Member member = memberService.join(memberJoinDto);
-        return new ResponseEntity<MemberJoinResponse>(new MemberJoinResponse(member.getUsername(), "joined", true), HttpStatus.CREATED);
+        MemberDetailDto join = memberService.join(memberJoinDto);
+        return new ResponseEntity<>(new MemberJoinResponse(join.username(), "Joined", true), HttpStatus.CREATED);
     }
 
-    @PatchMapping("")
-    public ResponseEntity<LoginResponseDto> modify(
-            @LoginMemberId long id,
+    @PatchMapping("/{id}")
+    public ResponseEntity<LoginResponseDto> modify(@PathVariable("id") Long memberId, @AuthMember LoginMember loginMember,
             @RequestBody @Validated MemberUpdateDto memberUpdateDto) {
-        Member modifiedMember = memberService.modify(id, memberUpdateDto);
+        if(memberId != loginMember.id()) {
+            throw new IllegalArgumentException("잘못된 요청 주소입니다.");
+        }
 
-        return new ResponseEntity<>(new LoginResponseDto(modifiedMember.getUsername(), "modified") , HttpStatus.OK);
+        MemberDetailDto modifiedMember = memberService.modify(loginMember.id(), memberUpdateDto);
+
+        return new ResponseEntity<>(new LoginResponseDto(modifiedMember.username(), "modified") , HttpStatus.OK);
     }
 
-    @DeleteMapping("")
-    public ResponseEntity<withdrawalResponse> withdrawal(@LoginMemberId long id) {
-        withdrawalResponse response = memberService.withdrawal(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<withdrawalResponse> withdrawal(@PathVariable("id") Long memberId, @AuthMember LoginMember loginMember) {
+        if(memberId != loginMember.id()) {
+            throw new IllegalArgumentException("잘못된 요청 주소입니다.");
+        }
 
-        return new ResponseEntity<>(memberService.withdrawal(id), HttpStatus.OK);
+        return new ResponseEntity<>(memberService.withdrawal(loginMember.id()), HttpStatus.OK);
     }
 
     @Secured({"MANAGER", "ADMIN"})
@@ -92,11 +98,6 @@ public class MemberController {
         return new ResponseEntity<>(memberService.getAllMembers(pageable).map(MemberDetailDto::new), HttpStatus.OK);
     }
 
-    @PostMapping("/test")
-    public String test(@LoginMemberId Long memberId) {
-
-        return "[유효한 토큰] memberId: " + memberId;
-    }
 
     @Secured("MANAGER")
     @GetMapping("/manager-test")
@@ -112,5 +113,10 @@ public class MemberController {
     @GetMapping("/admin-manager-test")
     public String adminManagerTest() {
         return "admin";
+    }
+    @PostMapping("/test")
+    public String test(@AuthMember LoginMember loginMember) {
+
+        return "[유효한 토큰] memberId: " + loginMember.id();
     }
 }

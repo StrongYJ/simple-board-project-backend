@@ -21,8 +21,8 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
 @Slf4j
+@Component
 public class TokenUtils {
     
     private final Key key;
@@ -31,50 +31,51 @@ public class TokenUtils {
         this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     }
 
-    public String createRefreshToken() {
-        return Jwts.builder()
-                .setSubject("board_project")
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + JwtProperties.REFRESH_EXPIRE_TIME))
-                .signWith(key)
-                .compact();
-    }
     public String createAccessToken(Long memberId, MemberRole role) {
-        return JwtProperties.ACCESS_NAME + Jwts.builder()
-            .setSubject("board_project")
+        return JwtProperties.ACCESS_PREFIX + Jwts.builder()
+            .setSubject("board_project_access")
             .claim("id", memberId)
-            .claim("role", role)
+            .claim("role", role.name())
             .setIssuedAt(new Date())
             .setExpiration(new Date(System.currentTimeMillis() + JwtProperties.ACCESS_EXPIRE_TIME))
             .signWith(key)
             .compact();
     }
-
-    public Authentication getAuthentication(String accessToken) {
-        Claims claims = parseClaims(accessToken);
-        Collection<GrantedAuthority> authority = new ArrayList<>();
-        String role = claims.get("role").toString();
-        authority.add(new SimpleGrantedAuthority(role));
-        return new UsernamePasswordAuthenticationToken(claims.get("id"), null, authority);
+    public String createRefreshToken() {
+        return Jwts.builder()
+                .setSubject("board_project_refresh")
+                .claim("refresh-token", "refresh-token")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + JwtProperties.REFRESH_EXPIRE_TIME))
+                .signWith(key)
+                .compact();
     }
 
-    public boolean verify(String token) {
-        Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-        return true;
+    public Authentication getAuthentication(final String accessToken) {
+        Claims claims = parseClaims(accessToken);
+        Collection<GrantedAuthority> authority = new ArrayList<>();
+        final Long memberId = claims.get("id", Long.class);
+        final String role = claims.get("role", String.class);
+        authority.add(new SimpleGrantedAuthority(role));
+        return new UsernamePasswordAuthenticationToken(memberId, null, authority);
+    }
+
+    public void verifyAcess(final String token) {
+        Jwts.parserBuilder().requireSubject("board_project_access").setSigningKey(key).build().parseClaimsJws(token);
+    }
+
+    public void verifyRefresh(final String token) {
+        Jwts.parserBuilder().requireSubject("board_project_refresh").setSigningKey(key).build().parseClaimsJws(token);
     }
 
     public String accessTokenResolve(String accessToken) {
-        return accessToken.replace(JwtProperties.ACCESS_NAME, "");
+        return accessToken.replace(JwtProperties.ACCESS_PREFIX, "");
     }
     public String getRefreshToken(Cookie[] cookies) {
         return Arrays.stream(cookies).filter(c -> c.getName().equals(JwtProperties.REFRESH_NANE)&&c.isHttpOnly()&&c.getSecure()).findAny().orElseThrow().getValue();
     }
 
-    public Long extractMemberId(String token) {
-        return parseClaims(token).get("id", Long.class);
-    }
-
-    private Claims parseClaims(String accessToken) {
+    private Claims parseClaims(final String accessToken) {
         return Jwts.parserBuilder().setSigningKey(key).build()
             .parseClaimsJws(accessToken)
             .getBody();

@@ -16,23 +16,8 @@ import io.jsonwebtoken.JwtException;
 @Slf4j
 class SimpleBoardApplicationTests {
 
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private TokenUtils tokenUtils;
-    @Autowired
-    private JPAQueryFactory jpaQueryFactory;
-
     @Test
     void contextLoads() throws InterruptedException {
-        String compact = tokenUtils.createAccessToken(1L, MemberRole.USER);
 
-        try {
-            Thread.sleep(2000L);
-            tokenUtils.verify(compact);
-        } catch (JwtException e) {
-            log.error("type = {}", e.toString());
-            log.error("message = {}", e.getMessage());
-        }
     }
 }

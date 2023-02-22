@@ -14,13 +14,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final TokenUtils tokenUtils;
+    private final JwtExceptionHandlerFilter jwtExceptionHandlerFilter;
+    private final JwtFilter jwtFilter;
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -30,7 +31,8 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/members/login", "/members/join").permitAll()
+                .requestMatchers(HttpMethod.POST, "/members/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/members").permitAll()
                 .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
                 .anyRequest().authenticated()
             )
@@ -38,8 +40,8 @@ public class SecurityConfig {
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .accessDeniedHandler(accessDeniedHandler())
             .and()
-            .addFilterBefore(new JwtFilter(tokenUtils), UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(new JwtExceptionHandlerFilter(), JwtFilter.class);
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(jwtExceptionHandlerFilter, JwtFilter.class);
             
         return http.build();
     }

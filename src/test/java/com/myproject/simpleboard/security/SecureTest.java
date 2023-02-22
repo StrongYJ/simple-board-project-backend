@@ -1,4 +1,4 @@
-package com.myproject.simpleboard;
+package com.myproject.simpleboard.security;
 
 import com.myproject.simpleboard.domain.member.entity.model.MemberRole;
 import com.myproject.simpleboard.global.security.JwtProperties;
@@ -6,6 +6,7 @@ import com.myproject.simpleboard.global.security.TokenUtils;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@AutoConfigureTestDatabase
 @AutoConfigureMockMvc
 public class SecureTest {
     @Autowired private MockMvc mockMvc;
