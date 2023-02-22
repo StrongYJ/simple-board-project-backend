@@ -8,7 +8,7 @@ REST API를 구현합니다.
 * SpringBoot 3.0
     - Spring Security + JWT
     - JPA
-* PostgreSQL
+* MariaDB
 * Git
 ---
 ### 구현할 기능
@@ -16,8 +16,8 @@ REST API를 구현합니다.
   * [x] 회원가입
   * [x] 정보수정
   * 로그인
-    * [ ] 액세스 토큰
-    * [ ] 리프레쉬 토큰
+    * [x] 액세스 토큰
+    * [x] 리프레쉬 토큰
   * 로그아웃
     * [ ] 액세스 토큰 블랙리스트
     * [ ] 리프레쉬 토큰 삭제
