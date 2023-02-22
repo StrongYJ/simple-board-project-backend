@@ -1,7 +1,8 @@
 간단한 게시판 백엔드 프로젝트입니다.
 ======
-API를 구현합니다.
-------
+REST API를 구현합니다.
+
+---
 ### 사용된 기술
 * Java 17
 * SpringBoot 3.0
@@ -10,7 +11,7 @@ API를 구현합니다.
 * PostgreSQL
 * Git
 ---
-#### 구현할 기능
+### 구현할 기능
 * 멤버
   * [x] 회원가입
   * [x] 정보수정
@@ -33,3 +34,13 @@ API를 구현합니다.
     * [ ] 작성
     * [ ] 수정
     * [ ] 삭제
+---
+### ER 다이어그램
+```mermaid
+erDiagram
+    Member ||--o{ Post : writes
+    Member ||--o{ Comment : writes
+    Board ||--o{ Post : has
+    Post ||--o{ Comment : has
+    
+```
