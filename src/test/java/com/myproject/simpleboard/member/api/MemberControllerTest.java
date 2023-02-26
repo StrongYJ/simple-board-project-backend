@@ -1,4 +1,4 @@
-package com.myproject.simpleboard.api.member;
+package com.myproject.simpleboard.member.api;
 
 import com.myproject.simpleboard.ApiTest;
 import com.myproject.simpleboard.domain.member.MemberRepository;

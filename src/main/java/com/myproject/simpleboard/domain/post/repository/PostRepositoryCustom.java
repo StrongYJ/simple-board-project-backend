@@ -1,4 +1,4 @@
-package com.myproject.simpleboard.domain.post.dao;
+package com.myproject.simpleboard.domain.post.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

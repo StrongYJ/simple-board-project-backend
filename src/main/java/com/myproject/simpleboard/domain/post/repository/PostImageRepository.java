@@ -1,4 +1,4 @@
-package com.myproject.simpleboard.domain.post.dao;
+package com.myproject.simpleboard.domain.post.repository;
 
 import com.myproject.simpleboard.domain.post.entity.Post;
 import org.springframework.data.jpa.repository.JpaRepository;

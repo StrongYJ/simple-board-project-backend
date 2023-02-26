@@ -1,14 +1,19 @@
 package com.myproject.simpleboard.domain.post.service;
 
-import java.io.File;
-import java.util.List;
-import java.util.NoSuchElementException;
-
+import com.myproject.simpleboard.domain.member.MemberRepository;
+import com.myproject.simpleboard.domain.member.entity.Member;
 import com.myproject.simpleboard.domain.member.entity.model.MemberRole;
-import com.myproject.simpleboard.domain.post.dto.post.PostUpdateDto;
+import com.myproject.simpleboard.domain.post.dto.post.*;
 import com.myproject.simpleboard.domain.post.entity.Comment;
-import com.myproject.simpleboard.domain.post.dao.CommentRepository;
+import com.myproject.simpleboard.domain.post.entity.Post;
+import com.myproject.simpleboard.domain.post.entity.PostImage;
+import com.myproject.simpleboard.domain.post.repository.CommentRepository;
+import com.myproject.simpleboard.domain.post.repository.PostImageRepository;
+import com.myproject.simpleboard.domain.post.repository.PostRepository;
 import com.myproject.simpleboard.global.security.AuthMember;
+import com.myproject.simpleboard.global.util.file.FileUtility;
+import com.myproject.simpleboard.global.util.file.UploadFile;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,24 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.myproject.simpleboard.domain.member.MemberRepository;
-import com.myproject.simpleboard.domain.member.entity.Member;
-import com.myproject.simpleboard.domain.post.dao.PostImageRepository;
-import com.myproject.simpleboard.domain.post.dao.PostRepository;
-import com.myproject.simpleboard.domain.post.entity.Post;
-import com.myproject.simpleboard.domain.post.entity.PostImage;
-import com.myproject.simpleboard.domain.post.dto.post.PostDto;
-import com.myproject.simpleboard.domain.post.dto.post.PostCreateDto;
-import com.myproject.simpleboard.domain.post.dto.post.PostDetailDto;
-import com.myproject.simpleboard.domain.post.dto.post.PostSimpleDto;
-import com.myproject.simpleboard.global.util.file.FileUtility;
-import com.myproject.simpleboard.global.util.file.UploadFile;
+import java.io.File;
+import java.util.List;
+import java.util.NoSuchElementException;
 
-import lombok.RequiredArgsConstructor;
-
-@Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Service
 public class PostService {
 
     private final PostRepository postRepo;
@@ -80,13 +74,10 @@ public class PostService {
                 throw new IllegalArgumentException("본인이 작성한 게시물만 수정할 수 있습니다.");
             }
         }
-
-        if(ObjectUtils.isEmpty(images)) {
-            postImageRepo.deleteByPost(post);
-        } else {
-            deleteImages(post);
+        
+        deleteImages(post);
+        if(!ObjectUtils.isEmpty(images))
             saveImages(post, images);
-        }
 
         post.updateTextInfo(data);
         return new PostDto(post);
