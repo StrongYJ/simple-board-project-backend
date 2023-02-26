@@ -1,8 +1,7 @@
 package com.myproject.simpleboard.domain.member;
 
 import com.myproject.simpleboard.domain.member.dto.*;
-import com.myproject.simpleboard.domain.member.entity.Member;
-import com.myproject.simpleboard.global.security.LoginMember;
+import com.myproject.simpleboard.global.security.AuthMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -14,7 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.myproject.simpleboard.global.security.JwtProperties;
-import com.myproject.simpleboard.global.security.AuthMember;
+import com.myproject.simpleboard.global.security.Auth;
 import com.myproject.simpleboard.global.security.TokenUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -30,12 +29,12 @@ public class MemberController {
     private final MemberService memberService;
 
     @GetMapping("")
-    public ResponseEntity<MemberBasicDto> info(@AuthMember LoginMember loginMember) {
-        return new ResponseEntity<>(new MemberBasicDto(memberService.getMemberById(loginMember.id())), HttpStatus.OK);
+    public ResponseEntity<MemberDto> info(@Auth AuthMember authMember) {
+        return new ResponseEntity<>(memberService.getMemberById(authMember.id()).removeId(), HttpStatus.OK);
     }
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto) {
-        MemberDetailDto loginMember = memberService.login(loginDto);
+        MemberDto loginMember = memberService.login(loginDto);
         ResponseCookie cookie = ResponseCookie.from(JwtProperties.REFRESH_NANE, tokenUtils.createRefreshToken())
                 .httpOnly(true)
                 .secure(true)
@@ -51,35 +50,32 @@ public class MemberController {
 
     @PostMapping("")
     public ResponseEntity<MemberJoinResponse> join(@RequestBody @Validated MemberJoinDto memberJoinDto) {
-        MemberDetailDto join = memberService.join(memberJoinDto);
+        MemberDto join = memberService.join(memberJoinDto);
         return new ResponseEntity<>(new MemberJoinResponse(join.username(), "Joined", true), HttpStatus.CREATED);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<LoginResponseDto> modify(@PathVariable("id") Long memberId, @AuthMember LoginMember loginMember,
+    public ResponseEntity<LoginResponseDto> modify(@PathVariable("id") Long memberId, @Auth AuthMember authMember,
             @RequestBody @Validated MemberUpdateDto memberUpdateDto) {
-        if(memberId != loginMember.id()) {
-            throw new IllegalArgumentException("잘못된 요청 주소입니다.");
-        }
+        checkValidMemberRequest(memberId, authMember);
 
-        MemberDetailDto modifiedMember = memberService.modify(loginMember.id(), memberUpdateDto);
+        MemberDto modifiedMember = memberService.modify(authMember.id(), memberUpdateDto);
 
         return new ResponseEntity<>(new LoginResponseDto(modifiedMember.username(), "modified") , HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<withdrawalResponse> withdrawal(@PathVariable("id") Long memberId, @AuthMember LoginMember loginMember) {
-        if(memberId != loginMember.id()) {
-            throw new IllegalArgumentException("잘못된 요청 주소입니다.");
-        }
 
-        return new ResponseEntity<>(memberService.withdrawal(loginMember.id()), HttpStatus.OK);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<withdrawalResponse> withdrawal(@PathVariable("id") Long memberId, @Auth AuthMember authMember) {
+        checkValidMemberRequest(memberId, authMember);
+
+        return new ResponseEntity<>(memberService.withdrawal(authMember.id()), HttpStatus.OK);
     }
 
     @Secured({"MANAGER", "ADMIN"})
     @GetMapping("/{id}")
-    public ResponseEntity<MemberDetailDto> getMemberDetailInfo(@PathVariable("id") long id) {
-        return new ResponseEntity<>(new MemberDetailDto(memberService.getMemberById(id)), HttpStatus.OK);
+    public ResponseEntity<MemberDto> getMemberDetailInfo(@PathVariable("id") long id) {
+        return new ResponseEntity<>(memberService.getMemberById(id), HttpStatus.OK);
     }
 
     @Secured({"MANAGER", "ADMIN"})
@@ -94,10 +90,15 @@ public class MemberController {
 
     @Secured({"MANAGER", "ADMIN"})
     @GetMapping("/all")
-    public ResponseEntity<Page<MemberDetailDto>> getMembers(Pageable pageable) {
-        return new ResponseEntity<>(memberService.getAllMembers(pageable).map(MemberDetailDto::new), HttpStatus.OK);
+    public ResponseEntity<Page<MemberDto>> getMembers(Pageable pageable) {
+        return new ResponseEntity<>(memberService.getAllMembers(pageable), HttpStatus.OK);
     }
 
+    private static void checkValidMemberRequest(Long memberId, AuthMember authMember) {
+        if(memberId != authMember.id()) {
+            throw new IllegalArgumentException("잘못된 요청 주소입니다.");
+        }
+    }
 
     @Secured("MANAGER")
     @GetMapping("/manager-test")
@@ -115,8 +116,8 @@ public class MemberController {
         return "admin";
     }
     @PostMapping("/test")
-    public String test(@AuthMember LoginMember loginMember) {
+    public String test(@Auth AuthMember authMember) {
 
-        return "[유효한 토큰] memberId: " + loginMember.id();
+        return "[유효한 토큰] memberId: " + authMember;
     }
 }

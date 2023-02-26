@@ -17,7 +17,7 @@ public class AuthenticationArgumentResolver implements HandlerMethodArgumentReso
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(AuthMember.class) && parameter.getParameterType().equals(LoginMember.class);
+        return parameter.hasParameterAnnotation(Auth.class) && parameter.getParameterType().equals(AuthMember.class);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class AuthenticationArgumentResolver implements HandlerMethodArgumentReso
         if(Objects.isNull(authentication)) {
             return null;
         }
-        return new LoginMember((Long) authentication.getPrincipal());
+        return authentication.getPrincipal();
     }
     
 }

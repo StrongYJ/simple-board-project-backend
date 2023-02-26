@@ -2,6 +2,7 @@ package com.myproject.simpleboard.domain.member.entity;
 
 import com.myproject.simpleboard.domain.member.entity.model.MemberRole;
 import com.myproject.simpleboard.domain.member.entity.model.MemberStatus;
+import com.myproject.simpleboard.domain.member.entity.model.PunishDetail;
 import com.myproject.simpleboard.domain.shared.model.BaseTime;
 
 import jakarta.persistence.*;
@@ -10,6 +11,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.StringUtils;
+
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -20,26 +23,29 @@ public class Member extends BaseTime {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String username;
 
+    @Column(nullable = false)
     private String pwd;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private MemberRole role;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private MemberStatus status;
 
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
-    private MemberStatusDetail memberStatusDetail;
+    @Embedded
+    private PunishDetail punishDetail;
 
     @Builder
-    public Member(String username, String pwd, MemberRole role, MemberStatus memberStatus) {
+    public Member(String username, String pwd, MemberRole role) {
         this.username = username;
         this.pwd = pwd;
         this.role = role;
-        this.status = memberStatus;
+        this.status = MemberStatus.NORMAL;
     }
 
     public void updateUsernameOrPwd(String username, String pwd) {
@@ -47,12 +53,12 @@ public class Member extends BaseTime {
         if(StringUtils.hasText(pwd)) this.pwd = pwd;
     }
 
-    public void punishPause(String reason) {
+    public void paused(String reason, LocalDate deadline) {
         this.status = MemberStatus.PAUSE;
-        this.memberStatusDetail = new MemberStatusDetail(MemberStatus.PAUSE, reason, this);
+        this.punishDetail = new PunishDetail(reason, deadline);
     }
-    public void punishSuspend(String reason) {
+    public void suspended(String reason) {
         this.status = MemberStatus.SUSPEND;
-        this.memberStatusDetail = new MemberStatusDetail(MemberStatus.SUSPEND, reason, this);
+        this.punishDetail = new PunishDetail(reason, null);
     }
 }

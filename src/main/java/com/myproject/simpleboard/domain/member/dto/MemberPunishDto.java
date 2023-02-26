@@ -1,6 +1,6 @@
 package com.myproject.simpleboard.domain.member.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import com.myproject.simpleboard.domain.member.entity.model.MemberStatus;
 
-public record MemberPunishDto(@NotBlank String status, String reason) {
+public record MemberPunishDto(MemberStatus status, String reason, Long days) {
 }

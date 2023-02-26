@@ -1,9 +1,14 @@
 package com.myproject.simpleboard.domain.post.service;
 
+import java.io.File;
 import java.util.List;
+import java.util.NoSuchElementException;
 
+import com.myproject.simpleboard.domain.member.entity.model.MemberRole;
+import com.myproject.simpleboard.domain.post.dto.post.PostUpdateDto;
 import com.myproject.simpleboard.domain.post.entity.Comment;
 import com.myproject.simpleboard.domain.post.dao.CommentRepository;
+import com.myproject.simpleboard.global.security.AuthMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,7 +22,7 @@ import com.myproject.simpleboard.domain.post.dao.PostImageRepository;
 import com.myproject.simpleboard.domain.post.dao.PostRepository;
 import com.myproject.simpleboard.domain.post.entity.Post;
 import com.myproject.simpleboard.domain.post.entity.PostImage;
-import com.myproject.simpleboard.domain.post.dto.post.CreatedPostDto;
+import com.myproject.simpleboard.domain.post.dto.post.PostDto;
 import com.myproject.simpleboard.domain.post.dto.post.PostCreateDto;
 import com.myproject.simpleboard.domain.post.dto.post.PostDetailDto;
 import com.myproject.simpleboard.domain.post.dto.post.PostSimpleDto;
@@ -37,8 +42,8 @@ public class PostService {
     private final MemberRepository memberRepo;
     private final FileUtility fileUtility;
 
-    public Page<PostSimpleDto> findAll(Pageable pageable) {
-        return postRepo.findAll(pageable).map(PostSimpleDto::new);
+    public Page<PostSimpleDto> findAllByBoard(String board, Pageable pageable) {
+        return postRepo.findByBoard(board, pageable).map(PostSimpleDto::new);
     }
 
     public PostDetailDto findPostDetail(Long id) {
@@ -49,17 +54,67 @@ public class PostService {
     }
 
     @Transactional
-    public CreatedPostDto create(Long memberId, PostCreateDto text, MultipartFile... images) {
+    public PostDto create(Long memberId, PostCreateDto data, MultipartFile... images) {
+        if(!postRepo.existsByBoard(data.board())) {
+            throw new NoSuchElementException("존재하지 않는 게시판입니다.");
+        }
+
         Member member = memberRepo.findById(memberId).orElseThrow();
-        Post newPost = new Post(text.title(), text.body(), member);
+        Post newPost = new Post(data.board(), data.type(), data.title(), data.body(), member);
         postRepo.save(newPost);
         if (!ObjectUtils.isEmpty(images)) {
-            List<UploadFile> saveFile = fileUtility.saveFile(images);
-            List<PostImage> newImages = saveFile.stream()
-                    .map(f -> new PostImage(f.originalFilename(), f.savedFilename(), newPost))
-                    .toList();
-            postImageRepo.saveAll(newImages);
+            saveImages(newPost, images);
         }
-        return new CreatedPostDto(newPost.getId(), newPost.getTitle(), newPost.getBody(), newPost.getWriter(), newPost.getCreatedDate());
+        return new PostDto(newPost);
+    }
+
+    @Transactional
+    public PostDto update(Long postId, PostUpdateDto data, Long memberId, MultipartFile... images) {
+        Post post = postRepo.findById(postId).orElseThrow();
+        Member member = memberRepo.findById(memberId).orElseThrow();
+
+        if(post.getMember() == null) {
+            throw new IllegalArgumentException("수정할 수 없는 게시물입니다.");
+        } else {
+            if(post.getMember().getId() != member.getId()) {
+                throw new IllegalArgumentException("본인이 작성한 게시물만 수정할 수 있습니다.");
+            }
+        }
+
+        if(ObjectUtils.isEmpty(images)) {
+            postImageRepo.deleteByPost(post);
+        } else {
+            deleteImages(post);
+            saveImages(post, images);
+        }
+
+        post.updateTextInfo(data);
+        return new PostDto(post);
+    }
+
+    @Transactional
+    public void delete(long postId, AuthMember authMember) {
+        Post post = postRepo.findById(postId).orElseThrow();
+
+        if(authMember.role() == MemberRole.USER &&
+                post.getMember() != null && post.getMember().getId() != authMember.id()) {
+            throw new IllegalArgumentException("본인 게시물만 삭제할 수 있습니다.");
+        }
+        deleteImages(post);
+        postRepo.delete(post);
+    }
+
+    private void deleteImages(Post post) {
+        List<PostImage> images = postImageRepo.findByPost(post);
+        images.forEach(img -> new File(fileUtility.getFullPath(img.getSavedName()).toString()).delete());
+        postImageRepo.deleteByPost(post);
+    }
+
+    private void saveImages(Post post, MultipartFile[] images) {
+        List<UploadFile> saveFile = fileUtility.save(images);
+        List<PostImage> newImages = saveFile.stream()
+                .map(f -> new PostImage(f.originalFilename(), f.savedFilename(), post))
+                .toList();
+        postImageRepo.saveAll(newImages);
     }
 }

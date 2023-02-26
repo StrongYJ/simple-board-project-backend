@@ -53,11 +53,10 @@ public class TokenUtils {
 
     public Authentication getAuthentication(final String accessToken) {
         Claims claims = parseClaims(accessToken);
-        Collection<GrantedAuthority> authority = new ArrayList<>();
         final Long memberId = claims.get("id", Long.class);
         final String role = claims.get("role", String.class);
-        authority.add(new SimpleGrantedAuthority(role));
-        return new UsernamePasswordAuthenticationToken(memberId, null, authority);
+        AuthMember authMember = new AuthMember(memberId, MemberRole.valueOf(role));
+        return new UsernamePasswordAuthenticationToken(authMember, null, authMember.getAuthorities());
     }
 
     public void verifyAcess(final String token) {

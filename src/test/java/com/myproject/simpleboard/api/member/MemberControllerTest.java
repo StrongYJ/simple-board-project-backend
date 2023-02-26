@@ -33,12 +33,12 @@ class MemberControllerTest extends ApiTest {
     @Autowired private TokenUtils tokenUtils;
     @Autowired private MemberRepository memberRepo;
     @Autowired private BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final static Member oldMember = new Member("oldMember", "oldMemberPwd", MemberRole.USER, MemberStatus.NORMAL);
+    private final static Member oldMember = new Member("oldMember", "oldMemberPwd", MemberRole.USER);
     private Long oldMemberId;
     private String oldMemberAccessToken;
     @BeforeEach
     void init() {
-        Member member = new Member(oldMember.getUsername(), bCryptPasswordEncoder.encode(oldMember.getPwd()), oldMember.getRole(), oldMember.getStatus());
+        Member member = new Member(oldMember.getUsername(), bCryptPasswordEncoder.encode(oldMember.getPwd()), oldMember.getRole());
         memberRepo.save(member);
         oldMemberId = member.getId();
         oldMemberAccessToken = tokenUtils.createAccessToken(member.getId(), oldMember.getRole());

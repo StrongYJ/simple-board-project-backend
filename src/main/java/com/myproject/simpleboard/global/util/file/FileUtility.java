@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,8 @@ public class FileUtility {
     public Path getFullPath(String filename) {
         return Paths.get(path).resolve(filename);
     }
-    public List<UploadFile> saveFile(MultipartFile... files) {
+
+    public List<UploadFile> save(MultipartFile... files) {
         List<UploadFile> savedFiles = new ArrayList<>();
         Arrays.asList(files).stream()
             .filter(file -> !file.isEmpty())

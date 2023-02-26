@@ -10,6 +10,7 @@ import java.util.Date;
 import com.myproject.simpleboard.domain.member.MemberRepository;
 import com.myproject.simpleboard.domain.member.entity.Member;
 import com.myproject.simpleboard.domain.member.entity.model.MemberStatus;
+import com.myproject.simpleboard.global.security.AuthMember;
 import io.jsonwebtoken.IncorrectClaimException;
 import io.jsonwebtoken.MissingClaimException;
 import org.assertj.core.api.Assertions;
@@ -50,7 +51,7 @@ public class AccessJWTControllerTest {
 
     @BeforeAll
     void createDummyMember() {
-        Member member = new Member("test1", "fkwemfkwefm", MemberRole.USER, MemberStatus.NORMAL);
+        Member member = new Member("test1", "fkwemfkwefm", MemberRole.USER);
         memberRepository.save(member);
         dummyMemberId = member.getId();
     }
@@ -72,7 +73,7 @@ public class AccessJWTControllerTest {
 
         mockMvc.perform(post("/members/test").header(HttpHeaders.AUTHORIZATION, accessToken))
                 .andExpect(status().isOk())
-                .andExpect(content().string("[유효한 토큰] memberId: " + dummyMemberId))
+                .andExpect(content().string("[유효한 토큰] memberId: " + new AuthMember(dummyMemberId, MemberRole.USER)))
                 .andDo(print());
     }
 

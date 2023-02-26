@@ -33,9 +33,9 @@ public class ImageController {
         return new UrlResource("file:" + fileUtility.getFullPath(filename));
     }
 
-    @GetMapping("")
-    public ResponseEntity<Resource> downloadPostImages(@RequestParam("image_id") Long Id) throws MalformedURLException {
-        PostImage postImg = postImgRepo.findById(Id).orElseThrow();
+    @GetMapping("/{image-id}")
+    public ResponseEntity<Resource> downloadPostImages(@PathVariable("image-id") Long id) throws MalformedURLException {
+        PostImage postImg = postImgRepo.findById(id).orElseThrow();
         UrlResource urlResource = new UrlResource("file:" + fileUtility.getFullPath(postImg.getSavedName()));
         String encodeOriginalName = UriUtils.encode(postImg.getOriginalName(), StandardCharsets.UTF_8);
         String contentDisposition = "attachment; filename=\"" + encodeOriginalName + "\"";

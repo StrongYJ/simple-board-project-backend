@@ -11,9 +11,9 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 
-@MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
 @Getter
+@EntityListeners(AuditingEntityListener.class)
+@MappedSuperclass
 public abstract class BaseTime {
     
     @Column(updatable = false)

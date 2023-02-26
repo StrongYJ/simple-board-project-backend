@@ -1,20 +1,15 @@
 package com.myproject.simpleboard.domain.shared.model;
 
-import jakarta.persistence.DiscriminatorColumn;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
+import jakarta.persistence.*;
 import lombok.Getter;
 
-@Entity
+@Getter
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn
-@Getter
+@Entity
 public abstract class File {
     
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     protected String savedName;

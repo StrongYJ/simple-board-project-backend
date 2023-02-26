@@ -26,16 +26,16 @@ public class MemberService {
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public Member getMemberById(long id) {
-        return memberRepo.findById(id).orElseThrow();
+    public MemberDto getMemberById(long id) {
+        return new MemberDto(memberRepo.findById(id).orElseThrow());
     }
 
     @Transactional(readOnly = true)
-    public Page<Member> getAllMembers(Pageable pageable) {
-        return memberRepo.findAll(pageable);
+    public Page<MemberDto> getAllMembers(Pageable pageable) {
+        return memberRepo.findAll(pageable).map(MemberDto::new);
     }
 
-    public MemberDetailDto join(MemberJoinDto memberJoinDto) {
+    public MemberDto join(MemberJoinDto memberJoinDto) {
         if(memberRepo.existsByUsername(memberJoinDto.username()))
             throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
 
@@ -43,24 +43,23 @@ public class MemberService {
                 .username(memberJoinDto.username())
                 .pwd(passwordEncoder.encode(memberJoinDto.password()))
                 .role(MemberRole.USER)
-                .memberStatus(MemberStatus.NORMAL)
                 .build();
         memberRepo.save(newMember);
-        return new MemberDetailDto(newMember);
+        return new MemberDto(newMember);
     }
 
-    public MemberDetailDto login(LoginDto loginDto) {
+    public MemberDto login(LoginDto loginDto) {
         Member member = memberRepo.findMemberByUsername(loginDto.username()).orElseThrow(() ->
                 new NoSuchElementException("아이디나 비밀번호가 잘못되었습니다."));
         if(!passwordEncoder.matches(loginDto.password(), member.getPwd()))
             throw new NoSuchElementException("아이디나 비밀번호가 잘못되었습니다.");
         checkNormalMember(member);
 
-        return new MemberDetailDto(member);
+        return new MemberDto(member);
     }
 
 
-    public MemberDetailDto modify(Long id, MemberUpdateDto memberUpdateDto) {
+    public MemberDto modify(Long id, MemberUpdateDto memberUpdateDto) {
         Member member = memberRepo.findById(id).orElseThrow();
         if(StringUtils.hasText(memberUpdateDto.username()) &&
                 memberRepo.existsByUsername(memberUpdateDto.username())) {
@@ -70,7 +69,7 @@ public class MemberService {
         member.updateUsernameOrPwd(memberUpdateDto.username(),
                 StringUtils.hasText(memberUpdateDto.pwd()) ? passwordEncoder.encode(memberUpdateDto.pwd()) : null);
 
-        return new MemberDetailDto(member);
+        return new MemberDto(member);
     }
 
     public withdrawalResponse withdrawal(long id) {
@@ -82,16 +81,15 @@ public class MemberService {
     public ChangeStatusResponse changeStatus(long id, MemberPunishDto punish) {
         Member member = memberRepo.findById(id).orElseThrow();
 
-        MemberStatus changeMemberStatus = MemberStatus.valueOf(punish.status().toUpperCase());
-        if(changeMemberStatus == MemberStatus.PAUSE) {
-            member.punishPause(punish.reason());
-        } else if(changeMemberStatus == MemberStatus.SUSPEND) {
-            member.punishSuspend(punish.reason());
+        if(punish.status() == MemberStatus.PAUSE) {
+            member.paused(punish.reason(), LocalDate.now().plusDays(punish.days()));
+        } else if(punish.status() == MemberStatus.SUSPEND) {
+            member.suspended(punish.reason());
         } else {
             throw new IllegalArgumentException(punish.status() + "은(는) 잘못된 요청입니다.");
         }
 
-        return new ChangeStatusResponse(member.getUsername(), changeMemberStatus.getTitle() + "정지되었습니다.");
+        return new ChangeStatusResponse(member.getUsername(), punish.status().getTitle() + "되었습니다.");
     }
 
     private void checkNormalMember(Member member) {

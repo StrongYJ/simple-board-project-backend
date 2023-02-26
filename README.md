@@ -40,7 +40,6 @@ REST API를 구현합니다.
 erDiagram
     Member ||--o{ Post : writes
     Member ||--o{ Comment : writes
-    Board ||--o{ Post : has
     Post ||--o{ Comment : has
     
 ```

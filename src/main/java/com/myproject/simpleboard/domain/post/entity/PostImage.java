@@ -11,10 +11,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @PrimaryKeyJoinColumn(name = "file_id")
+@Entity
 public class PostImage extends File {
     
     @JoinColumn(name = "post_id")
